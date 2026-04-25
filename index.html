@@ -3,85 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RE:CAP | Счетчик проекта</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Вторая жизнь крышки | Проект</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2ecc71; --dark: #2c3e50; --light: #f8f9fa; }
+        :root {
+            --primary: #2ecc71;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--light); text-align: center; padding: 20px; }
-        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 500px; margin: 40px auto; }
-        h1 { font-weight: 900; color: var(--dark); margin-bottom: 10px; }
-        .counter { font-size: 5rem; font-weight: 900; color: var(--primary); margin: 20px 0; }
-        .input-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-        input { padding: 12px; border: 2px solid #ddd; border-radius: 10px; width: 120px; outline: none; }
-        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 700; }
-        .btn:hover { background: #27ae60; }
-        .status { font-size: 0.8rem; color: #888; margin-top: 15px; }
+        body { background-color: var(--light); color: var(--dark); line-height: 1.6; }
+
+        .hero {
+            background: linear-gradient(135deg, #dcfce7 0%, #ffffff 100%);
+            padding: 80px 5%;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .hero h1 { font-size: 3.5rem; font-weight: 800; color: var(--dark); margin-bottom: 20px; line-height: 1.2; }
+        
+        .team-photo {
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+            background: #cbd5e1;
+            margin: 30px auto;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            font-weight: 600;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .counter-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .highlight { color: var(--primary); font-weight: 800; font-size: 2rem; }
+
+        .section { padding: 80px 5%; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 50px; font-weight: 800; }
+
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .card { background: white; padding: 40px 30px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .icon { font-size: 3rem; margin-bottom: 20px; }
+        .card h3 { margin-bottom: 15px; font-size: 1.3rem; }
+
+        .process-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: center; }
+        .process-step { background: #e2e8f0; height: 250px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: var(--gray); font-weight: 600; text-align: center; padding: 20px; }
+        
+        .map-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            text-align: center;
+        }
+        .map-placeholder {
+            width: 100%;
+            height: 350px;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 50px;
+        }
+
+        .secret-trigger {
+            cursor: pointer;
+            opacity: 0.1;
+            padding: 10px;
+        }
+        .secret-trigger:hover { opacity: 0.5; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2rem; }
+            .process-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>RE:CAP</h1>
-        <p>Собрано пластиковых крышек:</p>
-        <div class="counter" id="capCount">Загрузка...</div>
+    <header class="hero">
+        <h1>От мусора к искусству:<br>Вторая жизнь пластика</h1>
         
-        <div class="input-group">
-            <input type="number" id="weightInput" placeholder="Вес (г)">
-            <button class="btn" onclick="updateData()">Добавить</button>
+        <div class="team-photo">
+            [Здесь будет фото: Алан, Эрали, Айдай, Нурали и Сонун эже за работой]
         </div>
-        <p class="status" id="dbStatus">Подключение к базе...</p>
-    </div>
+
+        <div class="counter-box">
+            Мы уже собрали <span class="highlight" id="capCount">1540</span> крышек <br>
+            и спасли <span class="highlight" id="kgCount">3.9</span> кг пластика от свалки!
+        </div>
+    </header>
+
+    <section class="section">
+        <h2 class="section-title">Почему это важно?</h2>
+        <div class="grid-3">
+            <div class="card">
+                <div class="icon">🔥</div>
+                <h3>Разные судьбы</h3>
+                <p>Бутылка (PET) и крышка (HDPE) плавятся при разных температурах. Их обязательно нужно разделять.</p>
+            </div>
+            <div class="card">
+                <div class="icon">💥</div>
+                <h3>Ловушка для воздуха</h3>
+                <p>Закрытая бутылка может «взорваться» под прессом. Сжал бутылку — положил крышку в бокс!</p>
+            </div>
+            <div class="card">
+                <div class="icon">⚡</div>
+                <h3>Экономия энергии</h3>
+                <p>Отделяя крышку сразу, мы экономим ресурсы планеты и помогаем переработчикам.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="background: white; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+        <h2 class="section-title">Магия превращения</h2>
+        <div class="process-grid">
+            <div class="process-step">[Сбор и сортировка]</div>
+            <div class="process-step" style="background: #e0f2fe;">[LEGO Art Remix]</div>
+            <div class="process-step">[Готовая картина]</div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 class="section-title">Где сдать крышки?</h2>
+        <div class="map-container">
+            <p>Мини-боксы (15х15 см) на мусорных баках Akylman Presidential School:</p>
+            <div class="map-placeholder">
+                [Схема школы с точками сбора]
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 Проект «Вторая жизнь крышки»</p>
+        <span class="secret-trigger" onclick="adminAccess()">.</span>
+    </footer>
 
     <script>
-        // ВСТАВЬ СКОПИРОВАННЫЕ ЦИФРЫ МЕЖДУ КАВЫЧКАМИ:
-        const DATABASE_ID = "019dc2d7-fec1-71df-8fe3-06b8481eefd5"; 
-        
-        // ВАШ СЕКРЕТНЫЙ ПАРОЛЬ
-        const PIN_CODE = "777616472"; 
+        const SECRET_CODE = "777616472"; 
+        const WEIGHT_PER_CAP = 2.5; 
 
-        let currentTotal = 0;
+        // Берем сохраненное значение или ставим 1540 по умолчанию
+        let currentCaps = parseInt(localStorage.getItem('recap_total')) || 1540;
 
-        async function loadData() {
-            try {
-                const response = await fetch(`https://jsonblob.com/api/jsonBlob/${DATABASE_ID}`);
-                const data = await response.json();
-                currentTotal = data.caps;
-                document.getElementById('capCount').innerText = currentTotal;
-                document.getElementById('dbStatus').innerText = "Данные синхронизированы";
-            } catch (error) {
-                document.getElementById('dbStatus').innerText = "Ошибка загрузки данных. Проверьте DATABASE_ID";
-            }
+        function updateDisplay() {
+            document.getElementById('capCount').innerText = currentCaps;
+            const kg = (currentCaps * WEIGHT_PER_CAP) / 1000;
+            document.getElementById('kgCount').innerText = kg.toFixed(1);
         }
 
-        async function updateData() {
-            const weight = document.getElementById('weightInput').value;
-            if (!weight || weight <= 0) return;
+        function adminAccess() {
+            const code = prompt("Система управления. Введите код:");
+            if (code !== SECRET_CODE) return;
 
-            const pin = prompt("Введите пароль для обновления счетчика:");
-            if (pin !== PIN_CODE) return alert("Неверный пароль! Доступ запрещен.");
+            const weightInput = prompt("Введите вес новой партии крышек (в граммах):");
+            const weight = parseInt(weightInput);
+            
+            if (!weight || weight <= 0 || isNaN(weight)) return;
 
-            document.getElementById('dbStatus').innerText = "Сохранение...";
-            const newCaps = Math.round(weight / 2.5);
-            const newTotal = currentTotal + newCaps;
+            const newCaps = Math.round(weight / WEIGHT_PER_CAP);
+            currentCaps += newCaps;
 
-            try {
-                await fetch(`https://jsonblob.com/api/jsonBlob/${DATABASE_ID}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ caps: newTotal })
-                });
-                
-                currentTotal = newTotal;
-                document.getElementById('capCount').innerText = currentTotal;
-                document.getElementById('weightInput').value = '';
-                document.getElementById('dbStatus').innerText = "Успешно обновлено!";
-            } catch (error) {
-                document.getElementById('dbStatus').innerText = "Ошибка сохранения";
-            }
+            // Сохраняем в память ТВОЕГО браузера
+            localStorage.setItem('recap_total', currentCaps);
+            
+            updateDisplay();
+            alert(`Успешно! Добавлено ${newCaps} крышек.`);
         }
 
-        loadData();
+        window.onload = updateDisplay;
     </script>
 </body>
 </html>
