@@ -17,6 +17,7 @@
         .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 700; }
         .btn:hover { background: #27ae60; }
         .status { font-size: 0.8rem; color: #888; margin-top: 15px; }
+        .setup-box { margin-top: 20px; padding: 15px; background: #ffeaa7; border-radius: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -24,53 +25,107 @@
     <div class="container">
         <h1>RE:CAP</h1>
         <p>Собрано пластиковых крышек:</p>
-        <div class="counter" id="capCount">...</div>
+        <div class="counter" id="capCount">Загрузка...</div>
         
         <div class="input-group">
             <input type="number" id="weightInput" placeholder="Вес (г)">
             <button class="btn" onclick="updateData()">Добавить</button>
         </div>
         <p class="status" id="dbStatus">Подключение к базе...</p>
+
+        <div id="setupBlock" class="setup-box">
+            <p>⚠️ База не подключена. Давай создадим её (без регистрации):</p>
+            <button class="btn" style="background: #e17055; margin-top: 10px;" onclick="createDB()">Сгенерировать базу</button>
+        </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+    <script>
+        // 1. КОГДА СГЕНЕРИРУЕШЬ БАЗУ НА САЙТЕ, ВСТАВЬ ЕЁ ID СЮДА:
+        const DATABASE_ID = ""; 
+        
+        // 2. ВАШ СЕКРЕТНЫЙ ПАРОЛЬ ДЛЯ КОМАНДЫ
+        const PIN_CODE = "2026"; 
 
-        // КОНФИГУРАЦИЯ (Замени данные ниже на свои из настроек Firebase)
-        const firebaseConfig = {
-            apiKey: "ТВОЙ_API_KEY",
-            databaseURL: "https://ТВОЙ-ПРОЕКТ.firebaseio.com",
-            projectId: "ТВОЙ-ПРОЕКТ",
-            appId: "ТВОЙ_APP_ID"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const countRef = ref(db, 'totalCaps');
         let currentTotal = 0;
 
-        // Слушаем изменения в реальном времени
-        onValue(countRef, (snapshot) => {
-            currentTotal = snapshot.val() || 0;
-            document.getElementById('capCount').innerText = currentTotal;
-            document.getElementById('dbStatus').innerText = "Данные синхронизированы";
-        });
-
-        window.updateData = function() {
-            const weight = document.getElementById('weightInput').value;
-            if (!weight) return;
-
-            // Спрашиваем пароль, чтобы не все могли менять
-            const pin = prompt("Введите секретный код (например, 1234):");
-            if (pin === "2026") { // Можешь поменять этот код
-                const newCaps = Math.round(weight / 2.5);
-                set(countRef, currentTotal + newCaps);
-                document.getElementById('weightInput').value = '';
-            } else {
-                alert("Неверный код!");
+        // Загрузка данных при входе на сайт
+        async function loadData() {
+            if (!DATABASE_ID) {
+                document.getElementById('capCount').innerText = "Нет базы";
+                document.getElementById('dbStatus').innerText = "Требуется настройка";
+                document.getElementById('setupBlock').style.display = "block";
+                return;
             }
-        };
+
+            try {
+                const response = await fetch(`https://jsonblob.com/api/jsonBlob/${DATABASE_ID}`);
+                const data = await response.json();
+                currentTotal = data.caps;
+                document.getElementById('capCount').innerText = currentTotal;
+                document.getElementById('dbStatus').innerText = "Данные синхронизированы";
+            } catch (error) {
+                document.getElementById('dbStatus').innerText = "Ошибка загрузки данных";
+            }
+        }
+
+        // Обновление данных (кнопка Добавить)
+        async function updateData() {
+            if (!DATABASE_ID) return alert("Сначала сгенерируйте базу!");
+            
+            const weight = document.getElementById('weightInput').value;
+            if (!weight || weight <= 0) return;
+
+            const pin = prompt("Введите пароль для обновления счетчика:");
+            if (pin !== PIN_CODE) return alert("Неверный пароль! Доступ только для команды Алана.");
+
+            document.getElementById('dbStatus').innerText = "Сохранение...";
+            
+            // Считаем крышки (вес делим на 2.5)
+            const newCaps = Math.round(weight / 2.5);
+            const newTotal = currentTotal + newCaps;
+
+            try {
+                // Отправляем новую цифру в облако
+                await fetch(`https://jsonblob.com/api/jsonBlob/${DATABASE_ID}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ caps: newTotal })
+                });
+                
+                currentTotal = newTotal;
+                document.getElementById('capCount').innerText = currentTotal;
+                document.getElementById('weightInput').value = '';
+                document.getElementById('dbStatus').innerText = "Успешно обновлено!";
+            } catch (error) {
+                document.getElementById('dbStatus').innerText = "Ошибка сохранения";
+            }
+        }
+
+        // Автоматическое создание базы
+        async function createDB() {
+            document.getElementById('setupBlock').innerHTML = "Создаю...";
+            try {
+                const response = await fetch('https://jsonblob.com/api/jsonBlob', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ caps: 1540 }) // Начальное значение счетчика
+                });
+                
+                const location = response.headers.get('Location');
+                const id = location.split('/').pop(); 
+                
+                prompt("ГОТОВО! Скопируй этот ID и вставь его в код на GitHub (в const DATABASE_ID):", id);
+                document.getElementById('setupBlock').innerHTML = `
+                    <p>Твой уникальный ID базы:</p>
+                    <h3 style="margin: 10px 0; color: #d63031;">${id}</h3>
+                    <p>Скопируй его, вставь в код в <b>const DATABASE_ID</b> и сохрани файл на GitHub.</p>
+                `;
+            } catch (error) {
+                alert("Ошибка при создании базы :(");
+            }
+        }
+
+        loadData();
     </script>
 </body>
 </html>
