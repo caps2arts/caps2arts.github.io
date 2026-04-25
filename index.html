@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RE:CAP | Счетчик проекта</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2ecc71; --dark: #2c3e50; --light: #f8f9fa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--light); text-align: center; padding: 20px; }
+        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 500px; margin: 40px auto; }
+        h1 { font-weight: 900; color: var(--dark); margin-bottom: 10px; }
+        .counter { font-size: 5rem; font-weight: 900; color: var(--primary); margin: 20px 0; }
+        .input-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        input { padding: 12px; border: 2px solid #ddd; border-radius: 10px; width: 120px; outline: none; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-weight: 700; }
+        .btn:hover { background: #27ae60; }
+        .status { font-size: 0.8rem; color: #888; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>RE:CAP</h1>
+        <p>Собрано пластиковых крышек:</p>
+        <div class="counter" id="capCount">...</div>
+        
+        <div class="input-group">
+            <input type="number" id="weightInput" placeholder="Вес (г)">
+            <button class="btn" onclick="updateData()">Добавить</button>
+        </div>
+        <p class="status" id="dbStatus">Подключение к базе...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+
+        // КОНФИГУРАЦИЯ (Замени данные ниже на свои из настроек Firebase)
+        const firebaseConfig = {
+            apiKey: "ТВОЙ_API_KEY",
+            databaseURL: "https://ТВОЙ-ПРОЕКТ.firebaseio.com",
+            projectId: "ТВОЙ-ПРОЕКТ",
+            appId: "ТВОЙ_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const countRef = ref(db, 'totalCaps');
+        let currentTotal = 0;
+
+        // Слушаем изменения в реальном времени
+        onValue(countRef, (snapshot) => {
+            currentTotal = snapshot.val() || 0;
+            document.getElementById('capCount').innerText = currentTotal;
+            document.getElementById('dbStatus').innerText = "Данные синхронизированы";
+        });
+
+        window.updateData = function() {
+            const weight = document.getElementById('weightInput').value;
+            if (!weight) return;
+
+            // Спрашиваем пароль, чтобы не все могли менять
+            const pin = prompt("Введите секретный код (например, 1234):");
+            if (pin === "2026") { // Можешь поменять этот код
+                const newCaps = Math.round(weight / 2.5);
+                set(countRef, currentTotal + newCaps);
+                document.getElementById('weightInput').value = '';
+            } else {
+                alert("Неверный код!");
+            }
+        };
+    </script>
+</body>
+</html>
